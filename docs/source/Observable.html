@@ -1,0 +1,186 @@
+<html>
+<head>
+  <title>The source code</title>
+    <link href="../resources/prettify/prettify.css" type="text/css" rel="stylesheet" />
+    <script type="text/javascript" src="../resources/prettify/prettify.js"></script>
+</head>
+<body  onload="prettyPrint();">
+    <pre class="prettyprint lang-js"><div id="cls-Ext.util.Observable"></div>/**
+ * @class Ext.util.Observable
+ * 
+ * Mixin class to support event handling inside of classes.
+ */
+Ext.define("Ext.util.Observable", {
+
+
+    <div id="cfg-Ext.util.Observable-listeners"></div>/**
+     * @cfg {Object} listeners Listeners object containing event name to handler function map
+     */
+    listeners: {},
+
+
+    /**
+     * Array holding all known event names
+     * @private     
+     */         
+    eventNames: [],
+    
+    
+    /**
+     * Object map holding all listener functions
+     * referenced by name      
+     * @private     
+     */         
+    listenersMap: {},
+    
+
+    <div id="method-Ext.util.Observable-fireEvent"></div>/**
+     * Fires a named event
+     * 
+     * @param {String} evtName Name of the event to fire
+     * @param {Mixed] ... As many additional params as you want to transmit to the event handler.
+     * @return void                   
+     */         
+    fireEvent: function(evtName /*, ...*/) {
+    
+        if (Ext.Array.indexOf(this.eventNames, evtName) < 0) {
+            throw "The event with name " + evtName + " cannot be fired. " +
+                  "It wasn't added before. (@see addEvents(...)).";
+        }
+
+        var newArgs = [];
+        for (index in arguments) {
+            if (index > 0) {
+                newArgs.push(arguments[index]);
+            }
+        }
+    
+        // Call any registered listener directly with the given arguments
+        for (var i=0; i<this.listenersMap[evtName].length; i++) {
+            this.listenersMap[evtName][i].apply(this, newArgs);
+        }
+    },
+    
+    
+    <div id="method-Ext.util.Observable-addEvents"></div>/**
+     * Registers event names
+     * 
+     * @param {String} ... As many event names as you want to register
+     * @return void               
+     */         
+    addEvents: function(/*...*/) {
+
+        if (Ext.isDefined(arguments[0]) && Ext.isArray(arguments[0])) {
+            throw "Don't use array as input. Just provide a lot of event names in sequence!";
+        }
+        
+        // Create a listener array in the 
+        // listeners map for any event name
+        for (var i=0; i<arguments.length; i++) {
+        
+            // Push to known event names list
+            this.eventNames.push(arguments[i]);
+            
+            // Create named listener stack
+            this.listenersMap[arguments[i]] = [];
+        }    
+    },
+    
+   
+    <div id="method-Ext.util.Observable-addListener"></div>/**
+     * Registers the given event handler function 
+     * for the given event name. If the event gets fired
+     * all registered event handlers will be called.
+     *
+     * TODO: Implement third argument cfg which supports the
+     *       most important complex behaviour bindings like Ext JS 4
+     *       e.g.: single, buffer, delay
+     * 
+     * @param {String} evtName Name of the event
+     * @param {Function} fn Function to register                         
+     * @return void
+     */               
+    addListener: function(evtName, fn) {
+
+        // Add the event handler function to the listener map
+        try {
+            this.listenersMap[evtName].push(fn);
+        } catch (e) {
+            throw "You want to listen to event " + evtName + " but this event was not added before by addEvents()!";
+        }
+    },
+    
+    
+    <div id="method-Ext.util.Observable-on"></div>/**
+     * Registers the given event handler function 
+     * for the given event name. If the event gets fired
+     * all registered event handlers will be called.
+     * 
+     * @param {String} evtName Name of the event
+     * @param {Function} fn Function to register                         
+     * @return void
+     */ 
+    on: function(evtName, fn) {
+    
+        // Call core method for that...
+        this.addListener(evtName, fn);
+    },
+    
+    
+    <div id="method-Ext.util.Observable-relayEvents"></div>/**
+     * Relays events to the given component instance
+     * so they get fired on the given class instance too.     
+     * 
+     * @param {Object} clsInst Class instance object (Mixin: Ext.util.Observable)
+     * @param {Array} eventNames Events to relay from source class instance               
+     * @return void    
+     */         
+    relayEvents: function(clsInst, eventNames) {
+        
+        var me = this,
+            execScope = null;
+
+        if (Ext.isDefined(clsInst.addEvents) &&
+            Ext.isFunction(clsInst.addEvents)) {
+            
+            me.addEvents(eventNames);
+
+            // For each event of the clsInst to attach
+            // register a local listener which fires the
+            // local, relay event 
+            for (var i=0; i<eventNames.length; i++) {
+
+                execScope = {};
+                execScope.me = me;
+                execScope._eventName = eventNames[i];
+                execScope._clsInst = clsInst;
+
+                with (execScope) {
+
+                    _clsInst.on(_eventName, function() {
+
+                        debug("Relayed event EXPERIMENTAL fired:");
+                        debug(_eventName);
+                        debug("Relayed event EXPERIMENTAL fired:");
+
+                        me.fireEvent(_eventName, arguments);
+                    });
+                }
+            }    
+        }
+    },
+
+
+    <div id="method-Ext.util.Observable-processListenersObject"></div>/**
+     * Processes the this.listeners object maybe containing
+     * event handler methods.
+     * @return void
+     */
+    processListenersObject: function() {
+        for (eventName in this.listeners) {
+            this.on(eventName, this.listeners[eventName]);
+        }
+    }
+});</pre>    
+</body>
+</html>

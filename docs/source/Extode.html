@@ -1,0 +1,118 @@
+<html>
+<head>
+  <title>The source code</title>
+    <link href="../resources/prettify/prettify.css" type="text/css" rel="stylesheet" />
+    <script type="text/javascript" src="../resources/prettify/prettify.js"></script>
+</head>
+<body  onload="prettyPrint();">
+    <pre class="prettyprint lang-js"><div id="cls-Extode"></div>/**
+ * @class Extode
+ * @singleton
+ * 
+ * <b>ATTENTION: Namespace is Ext here anyway.</b>  
+ * 
+ * <p>
+ * This base class of the Extanium framework introduces the 
+ * Extanium namespace and all it's core methods and properties.
+ * </p>
+ * 
+ * <p>
+ * To be used by: (Best practice: application/Profile.js)
+ * Ext.setProfile({
+ *     // Configuration goes here
+ * })  
+ * </p>   
+ *
+ * @author Aron Homberg
+ * @license MIT license
+ */
+Ext.apply(Ext, {
+
+     
+    <div id="cfg-Extode-enableDebugging"></div>/**
+     * @cfg {Boolean} enableDebugging Controls, if log messages will be shown or not (default: false)
+     */
+    enableDebugging: false,
+    
+    
+    <div id="prop-Extode-LOGLEVEL_WARN"></div>/**
+     * @type {String} LOGLEVEL_WARN Logs only warning messages 
+     */
+    LOGLEVEL_WARN: 'warn',
+    
+    
+    <div id="prop-Extode-LOGLEVEL_INFO"></div>/**
+     * @type {String} LOGLEVEL_INFO Logs all appearing messages
+     */
+    LOGLEVEL_INFO: 'info',
+    
+    
+    <div id="prop-Extode-LOGLEVEL_DEBUG"></div>/**
+     * @type {String} LOGLEVEL_DEBUG Logs warning and debug messages
+     */
+    LOGLEVEL_DEBUG: 'debug',
+    
+    
+    <div id="method-Extode-log"></div>/**
+     * Method for logging
+     *      
+     * @param {Mixed} logMessage Message to log
+     * @param {String} severity  Severity role name
+     * @return void
+     */
+    log: function(logMessage) {
+    
+        var severity = Ext.LOGLEVEL_INFO;
+        if (Ext.isDefined(arguments[1])) {
+            severity = arguments[1];
+        }
+        
+        // Only log if debugging is enabled
+        if (Ext.enableDebugging) {
+    
+            // Pretty-print if JSON
+            if (Ext.isObject(logMessage)) {
+                logMessage = JSON.stringify(logMessage);
+            }
+            console.log('Extode{' + severity + '} ' + logMessage);
+        }
+    },
+    debug: function(msg) { Ext.log(msg, Ext.LOGLEVEL_DEBUG)},
+    warn: function(msg) { Ext.log(msg, Ext.LOGLEVEL_WARN)},  
+    
+    
+    <div id="method-Extode-loadClassesByNames"></div>/**
+     * Loads classes by name from a specific base directory.
+     * Classes can be specified as array.     
+     * 
+     * @param {Array} classNames Class names
+     * @param {String} baseDir Base directory               
+     * @return void
+     */              
+    loadClassesByNames: function(classNames, baseDir) {
+        for (var i=0; i<classNames.length; i++) {
+            Ext.require(baseDir + "/" + classNames[i] + ".js");
+        }
+    },
+    
+    
+    <div id="method-Extode-require"></div>/**
+     * Loads the path specified
+     *      
+     * @param {String} path Path to load
+     * @param {Function} cb Callback to call when file is loaded
+     * @return void          
+     */         
+    require: function(path, cb) {
+        require(path);
+        cb();
+    }
+});
+
+// global is a reference for the global scope.
+// We reference global methods here as shortcuts.
+global.log = Ext.log;
+global.warn = Ext.warn;
+global.debug = Ext.debug;</pre>    
+</body>
+</html>

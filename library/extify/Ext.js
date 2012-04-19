@@ -1,0 +1,789 @@
+/*!
+ * Extify - runs everywhere
+ * 
+ * High performance, ultra-minimal, opensource OOP javascript framework in style 
+ * of Ext Core. Reimplements portions of the Ext Core 3.1 and Ext JS 4 API 
+ * in a clean way. Extify is MIT licensed.
+ *  
+ * USED PORTIONS OF:
+ * 
+ * Ext Core Library 3.1
+ * http://extjs.com/
+ * Copyright(c) 2006-2009, Ext JS, LLC.
+ * 
+ * MIT Licensed - http://extjs.com/license/mit.txt
+ *
+ * The MIT License
+ * 
+ * Permission is hereby granted, free of charge, to any person obtaining a copy
+ * of this software and associated documentation files (the "Software"), to deal
+ * in the Software without restriction, including without limitation the rights
+ * to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+ * copies of the Software, and to permit persons to whom the Software is
+ * furnished to do so, subject to the following conditions:
+ * 
+ * The above copyright notice and this permission notice shall be included in
+ * all copies or substantial portions of the Software.
+ * 
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+ * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+ * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+ * AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+ * LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+ * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
+ * THE SOFTWARE.
+ */
+
+ 
+// Node JS is executing
+if (typeof GLOBAL !== "undefined") {
+    window = global = GLOBAL;
+} else  if (typeof window !== "undefined") {
+    window = global = GLOBAL = window;
+} else {
+    window = global = GLOBAL = window = this;
+} 
+
+ 
+/**
+ * @class Ext
+ * Ext core utilities and functions.
+ * @singleton
+ */
+Ext = {
+
+    enableLogging: true,
+    USE_NATIVE_JSON : true,
+    version: '4.0.0',
+    frameworkName: 'Extify'
+};
+
+
+/**
+ * Copies all the properties of config to obj.
+ * @param {Object} obj The receiver of the properties
+ * @param {Object} config The source of the properties
+ * @param {Object} defaults A different object that will also be applied for default values
+ * @return {Object} returns obj
+ * @member Ext apply
+ */
+Ext.apply = function(o, c, defaults) {
+    if(defaults){
+        Ext.apply(o, defaults);
+    }
+    if(o && c && typeof c == 'object'){
+        for(var p in c){
+            if (true) {
+                o[p] = c[p];
+            }
+        }
+    }
+    return o;
+};
+
+(function(){
+    var toString = Object.prototype.toString;
+    
+    
+    Ext.apply(Ext, {
+
+         
+        /**
+         * @cfg {Boolean} enableLogging Controls, if log messages will be shown or not (default: false)
+         */
+        enableLogging: true,
+        
+        
+        /**
+         * @type {String} LOGLEVEL_WARN Logs only warning messages 
+         */
+        LOGLEVEL_WARN: 'warn',
+        
+        
+        /**
+         * @type {String} LOGLEVEL_INFO Logs all appearing messages
+         */
+        LOGLEVEL_INFO: 'info',
+        
+        
+        /**
+         * @type {String} LOGLEVEL_DEBUG Logs warning and debug messages
+         */
+        LOGLEVEL_DEBUG: 'debug',
+        
+        
+        /**
+         * Method for logging
+         *      
+         * @param {Mixed} logMessage Message to log (Can be array)
+         * @param {String} severity  Severity role name
+         * @return void
+         */
+        _log: function(logMessage) {
+        
+            var severity = Ext.LOGLEVEL_INFO, toLog = [];
+            if (Ext.isDefined(arguments[1])) {
+                severity = arguments[1];
+            }
+            toLog.push(
+                Ext.frameworkName + '[' + severity + ']:'
+            );
+            
+            for (var i=0; i<logMessage.length; i++) {
+                toLog.push(logMessage[i]);
+            }
+            
+            // Only log if debugging is enabled
+            if (Ext.enableLogging === true) {
+
+                try {
+                    console.log.apply(this, toLog);
+                } catch (e) {
+                    console.log(toLog);
+                }
+                
+            }
+        },
+        log: function() { Ext._log(arguments, Ext.LOGLEVEL_DEBUG)},
+        info: function() { Ext._log(arguments, Ext.LOGLEVEL_INFO)},
+        debug: function() { Ext._log(arguments, Ext.LOGLEVEL_DEBUG)},
+        warn: function() { Ext._log(arguments, Ext.LOGLEVEL_WARN)}
+    });
+     
+    // global is a reference for the global scope.
+    // We reference global methods here as shortcuts.
+    global.log = Ext.log;
+    global.warn = Ext.warn;
+    global.debug = Ext.debug;
+    global.dir = Ext.log;
+    global.alert = Ext.warn;
+    global.info = Ext.info;
+
+        
+    Ext.apply(Ext, {
+    
+        /**
+         * Copies all the properties of config to obj if they don't already exist.
+         * @param {Object} obj The receiver of the properties
+         * @param {Object} config The source of the properties
+         * @return {Object} returns obj
+         */
+        applyIf : function(o, c){
+            if(o){
+                for(var p in c){
+                    if(!Ext.isDefined(o[p])){
+                        o[p] = c[p];
+                    }
+                }
+            }
+            return o;
+        },
+
+        
+        /**
+         * <p>Extends one class to create a subclass and optionally overrides members with the passed literal. This method
+         * also adds the function "override()" to the subclass that can be used to override members of the class.</p>
+         * For example, to create a subclass of Ext GridPanel:
+         * <pre><code>
+MyGridPanel = Ext.extend(Ext.grid.GridPanel, {
+    constructor: function(config) {
+
+//      Create configuration for this Grid.
+        var store = new Ext.data.Store({...});
+        var colModel = new Ext.grid.ColumnModel({...});
+
+//      Create a new config object containing our computed properties
+//      *plus* whatever was in the config parameter.
+        config = Ext.apply({
+            store: store,
+            colModel: colModel
+        }, config);
+
+        MyGridPanel.superclass.constructor.call(this, config);
+
+//      Your postprocessing here
+    },
+
+    yourMethod: function() {
+        // etc.
+    }
+});
+</code></pre>
+         *
+         * <p>This function also supports a 3-argument call in which the subclass's constructor is
+         * passed as an argument. In this form, the parameters are as follows:</p>
+         * <div class="mdetail-params"><ul>
+         * <li><code>subclass</code> : Function <div class="sub-desc">The subclass constructor.</div></li>
+         * <li><code>superclass</code> : Function <div class="sub-desc">The constructor of class being extended</div></li>
+         * <li><code>overrides</code> : Object <div class="sub-desc">A literal with members which are copied into the subclass's
+         * prototype, and are therefore shared among all instances of the new class.</div></li>
+         * </ul></div>
+         *
+         * @param {Function} superclass The constructor of class being extended.
+         * @param {Object} overrides <p>A literal with members which are copied into the subclass's
+         * prototype, and are therefore shared between all instances of the new class.</p>
+         * <p>This may contain a special member named <tt><b>constructor</b></tt>. This is used
+         * to define the constructor of the new class, and is returned. If this property is
+         * <i>not</i> specified, a constructor is generated and returned which just calls the
+         * superclass's constructor passing on its parameters.</p>
+         * <p><b>It is essential that you call the superclass constructor in any provided constructor. See example code.</b></p>
+         * @return {Function} The subclass constructor from the <code>overrides</code> parameter, or a generated one if not provided.
+         */
+        extend : function() {
+            var io = function(o){
+                for(var m in o){
+                    if (this) {
+                        this[m] = o[m];
+                    }
+                }
+            };
+            var oc = Object.prototype.constructor;
+
+            return function(sb, sp, overrides){
+                
+                // If sb or sp is undefined
+                if (!Ext.isDefined(sb) || !Ext.isDefined(sp)) {
+                    return null;
+                }
+
+                if(Ext.isObject(sp)){
+                    overrides = sp;
+                    sp = sb;
+                    sb = overrides.constructor != oc ? overrides.constructor : function(){sp.apply(this, arguments);};
+                }
+                var F = function(){},
+                    sbp,
+                    spp = sp.prototype;
+
+                F.prototype = spp;
+                sbp = sb.prototype = new F();
+                sbp.constructor=sb;
+                
+                sb.superclass=spp;
+                if(spp.constructor == oc){
+                    spp.constructor=sp;
+                }
+                sb.override = function(o){
+                    Ext.override(sb, o);
+                };
+                sbp.superclass = sbp.supr = (function(){
+                    return spp;
+                });
+                sbp.override = io;
+                Ext.override(sb, overrides);
+                sb.extend = function(o){return Ext.extend(sb, o);};
+                
+                
+                return sb;
+            };
+        }(),
+        
+        
+        /**
+         * Defines a class prototype in Ext JS 4-style.
+         * 
+         * Currently supported:
+         * - singleton
+         * - extend
+         * - statics
+         * - mixins (multiple inheritance)  
+         * - implicit naming (given string name references class constructor function)
+         * - callback after define
+         * - alias name
+         * - auto dependency check -> but no autoloading! (antipattern!)  
+         * 
+         *  Example of old style Ext JS 3 (also works):
+         *                    
+         *  var lala = Ext.extend(Object, {
+         *    muah1: true  
+         *  });
+         *  new lala();
+         *  
+         *  // You can now use:
+         *           
+         *  Ext.define("lulu", {
+         *     haha: 15
+         *  });
+         *                   
+         *  Ext.define("lala2.lala", {
+         *      muah: false,
+         *      extend: 'lala',         
+         *      mixins: ['lulu'],
+         *      statics: {
+         *          uha: true
+         *      },
+         *      alias: 'another.classname',
+         *      singleton: true                  
+         *  }, function(classRef) {
+         *      console.debug('yeah, class was defined!');
+         *  });
+         *  
+         *  Ext.log(another.classname;                                        
+         *  
+         * @param {String} className Name of the class (even with namespaces)
+         * @param {Object} classDef Class definition 
+         * @param {Function} callback Callback function called when class is defined
+         * @return {Function} Class proto constructor function                                                  
+         */                          
+        define: function() {
+        
+            var nameOfClass = arguments[0],
+                classDef = arguments[1],
+                cb = arguments[2],
+                superClassRef = Object, i, 
+                mName = null, currentMixRef = {},
+                clsProto;
+
+            if (!Ext.isDefined(nameOfClass)) {
+                throw "Error: Please specify a class name when using Ext.define()!";
+            }
+            
+            if (!Ext.isDefined(classDef)) {
+                throw "Error: Please provide a class definition object for class '" + nameOfClass + "' when using Ext.define()!";
+            }
+            
+            if (!Ext.isDefined(cb)) {
+                cb = function() {};
+            }
+                
+            // Dereference extend class
+            if (!Ext.isDefined(classDef.extend)) {
+                classDef.extend = 'Ext.Class';
+            }
+            
+            if (Ext.isDefined(classDef.extend)) {
+                var clsNotPresentErr = "Error: The class '" + classDef.extend + "' the class '" + nameOfClass + "' should extend from isn't present.";
+                try {
+                    superClassRef = eval("(" + classDef.extend + ")");
+
+                    if (!Ext.isDefined(superClassRef)) {
+                        throw clsNotPresentErr;
+                    }
+
+                } catch (e) {
+                    throw clsNotPresentErr;
+                }
+            }
+            
+            // Handle multiple inheritance, mixins
+            if (Ext.isDefined(classDef.mixins) && Ext.isArray(classDef.mixins)) {
+                for (i=0; i<classDef.mixins.length; i++) {
+
+                    try {
+                        currentMixRef = eval("(" + classDef.mixins[i] + ")");
+                    } catch(e) {
+                        throw "Error: The class '" + classDef.mixins[i] + "' you want to mixin in '" + nameOfClass + "' is not present.";
+                    }
+                    
+                    // Apply prototype objects of mixins onto classDef by native order
+                    if (Ext.isDefined(currentMixRef) && Ext.isFunction(currentMixRef)) {
+                        
+                        delete currentMixRef.prototype.constructor;
+                        Ext.apply(classDef, currentMixRef.prototype);
+                    }
+                }  
+            }
+
+            // Annotate the method name to any function
+            // to allow callParent() to know their names.
+            for (mName in classDef) {
+                if (Ext.isFunction(classDef[mName])) {
+                    //console.debug("Annotating", classDef[mName], mName);
+                    classDef[mName]['$name'] = mName;
+                }
+            }
+            
+            // Extend the extending class of object
+            clsProto = Ext.extend(superClassRef, classDef);
+            
+            // Annotate the superclass on instance level
+            clsProto.prototype['$superclass'] = superClassRef;
+            
+            if (clsProto == null) {
+                throw "The class definition of class named " + nameOfClass + " failed. Maybe the inheritance function references are undefined.";
+            } 
+            
+            // If singleton, instantiate
+            if (Ext.isDefined(classDef.singleton) && 
+                classDef.singleton === true) {
+                clsProto = new clsProto();
+            }       
+
+            // Apply all statics statically
+            for (name in classDef.statics) {
+
+                // Bind the class def to the static methods so they can even work
+                // with this.* on prototype level ;-)
+                clsProto[name] = Ext.Function.bind(classDef.statics[name], clsProto);
+            }
+
+
+            // Namespacing with references
+            var nameRef = function(name, ref) {
+            
+                var scope, 
+                    splits = name.split("."),
+                    len = splits.length;
+                
+                if (len == 1) {
+                    scope = window[splits[0]] = ref;
+                    return scope;
+                } else {
+                    scope = window[splits[0]] = window[splits[0]] || {};
+                }   
+                
+                var splitIter = 1;
+                Ext.each(splits.slice(1), function(nameSplit) {
+                
+                    splitIter++;
+                    
+                    if (len == splitIter) {
+                        scope = scope[nameSplit] = ref;
+                    } else {
+                        scope = scope[nameSplit] = scope[nameSplit] || {};
+                    }
+                });
+                return scope;
+            };
+            
+            // Reference the given class name with the proto
+            nameRef(nameOfClass, clsProto);     
+            
+            // Assign alias name if given
+            if (Ext.isDefined(classDef.alias)) {
+                nameRef(classDef.alias, clsProto);
+            }      
+            
+            // Call after-create callback function
+            cb(clsProto);
+            
+            // Return reference to class proto constructor
+            return clsProto;
+        },
+        
+
+        /**
+         * Creates an instance of the named class with an instance overlay
+         * to use.
+         * 
+         * @param {String} className Name of the class (even with namespaces)
+         * @param {Object} instOverlay Overlay configuration for the instance 
+         * @return {Object} Class instance
+         */
+        create: function(className, instOverlay) {
+            var splits = className.split("."),
+                len = splits.length, i, prevRef = window, inst;
+
+            for (i=0; i<len; i++) {
+                prevRef = prevRef[splits[i]];
+
+                if (!Ext.isDefined(prevRef) || prevRef == null) {
+                    throw "The class you want to instantiate is not defined: " + className;  
+                }
+            }
+
+            if (!Ext.isDefined(instOverlay) || !Ext.isObject(instOverlay)) {
+                instOverlay = {}
+            }
+
+            if (!Ext.isFunction(prevRef))  {
+                throw "The given class name " + className + " is not of type function (not a constructor!)";
+            }            
+            return new prevRef(instOverlay);
+        },
+        
+        
+        /**
+         * Iterates an array calling the supplied function.
+         * @param {Array/NodeList/Mixed} array The array to be iterated. If this
+         * argument is not really an array, the supplied function is called once.
+         * @param {Function} fn The function to be called with each item. If the
+         * supplied function returns false, iteration stops and this method returns
+         * the current <code>index</code>. This function is called with
+         * the following arguments:
+         * <div class="mdetail-params"><ul>
+         * <li><code>item</code> : <i>Mixed</i>
+         * <div class="sub-desc">The item at the current <code>index</code>
+         * in the passed <code>array</code></div></li>
+         * <li><code>index</code> : <i>Number</i>
+         * <div class="sub-desc">The current index within the array</div></li>
+         * <li><code>allItems</code> : <i>Array</i>
+         * <div class="sub-desc">The <code>array</code> passed as the first
+         * argument to <code>Ext.each</code>.</div></li>
+         * </ul></div>
+         * @param {Object} scope The scope (<code>this</code> reference) in which the specified function is executed.
+         * Defaults to the <code>item</code> at the current <code>index</code>
+         * within the passed <code>array</code>.
+         * @return See description for the fn parameter.
+         */
+        each : function(array, fn, scope){
+            if(Ext.isEmpty(array, true)){
+                return;
+            }
+            if(Ext.isPrimitive(array)){
+                array = [array];
+            }
+            
+            // Todo: Extanium recursion fix
+            for(var i = 0, len = array.length; i < len; i++){
+                if(fn.call(scope || array[i], array[i], i, array) === false){
+                    return i;
+                };
+            }
+        },
+        
+        
+        /**
+         * Adds a list of functions to the prototype of an existing class, overwriting any existing methods with the same name.
+         * Usage:<pre><code>
+Ext.override(MyClass, {
+    newMethod1: function(){
+        // etc.
+    },
+    newMethod2: function(foo){
+        // etc.
+    }
+});
+</code></pre>
+         * @param {Object} origclass The class to override
+         * @param {Object} overrides The list of functions to add to origClass.  This should be specified as an object literal
+         * containing one or more methods.
+         * @method override
+         */
+        override : function(origclass, overrides){
+            if(overrides){
+                var p = origclass.prototype;
+                Ext.apply(p, overrides);
+            }
+        },
+        
+        
+        /**
+         * Creates namespaces to be used for scoping variables and classes so that they are not global.
+         * Specifying the last node of a namespace implicitly creates all other nodes. Usage:
+         * <pre><code>
+Ext.namespace('Company', 'Company.data');
+Ext.namespace('Company.data'); // equivalent and preferable to above syntax
+Company.Widget = function() { ... }
+Company.data.CustomStore = function(config) { ... }
+</code></pre>
+         * @param {String} namespace1
+         * @param {String} namespace2
+         * @param {String} etc
+         * @return {Object} The namespace object. (If multiple arguments are passed, this will be the last namespace created)
+         * @method namespace
+         */
+        namespace : function(){
+            var o, d;
+            
+            // Todo: Extanium recursion fix
+            Ext.each(arguments, function(v) {
+                d = v.split(".");
+                o = window[d[0]] = window[d[0]] || {};
+                Ext.each(d.slice(1), function(v2){
+                    o = o[v2] = o[v2] || {};
+                });
+            });
+            return o;
+        },
+        
+
+        /**
+         * Appends content to the query string of a URL, handling logic for whether to place
+         * a question mark or ampersand.
+         * @param {String} url The URL to append to.
+         * @param {String} s The content to append to the URL.
+         * @return (String) The resulting URL
+         */
+        urlAppend : function(url, s){
+            if(!Ext.isEmpty(s)){
+                return url + (url.indexOf('?') === -1 ? '?' : '&') + s;
+            }
+            return url;
+        },
+
+        
+        isIterable : function(v){
+            //check for array or arguments
+            if(Ext.isArray(v) || v.callee){
+                return true;
+            }
+        },
+        
+        
+        
+        /**
+         * Iterates either the elements in an array, or each of the properties in an object.
+         * <b>Note</b>: If you are only iterating arrays, it is better to call {@link #each}.
+         * @param {Object/Array} object The object or array to be iterated
+         * @param {Function} fn The function to be called for each iteration.
+         * The iteration will stop if the supplied function returns false, or
+         * all array elements / object properties have been covered. The signature
+         * varies depending on the type of object being interated:
+         * <div class="mdetail-params"><ul>
+         * <li>Arrays : <tt>(Object item, Number index, Array allItems)</tt>
+         * <div class="sub-desc">
+         * When iterating an array, the supplied function is called with each item.</div></li>
+         * <li>Objects : <tt>(String key, Object value, Object)</tt>
+         * <div class="sub-desc">
+         * When iterating an object, the supplied function is called with each key-value pair in
+         * the object, and the iterated object</div></li>
+         * </ul></div>
+         * @param {Object} scope The scope (<code>this</code> reference) in which the specified function is executed. Defaults to
+         * the <code>object</code> being iterated.
+         */
+        iterate : function(obj, fn, scope){
+            if(Ext.isEmpty(obj)){
+                return;
+            }
+            if(Ext.isIterable(obj)){
+                Ext.each(obj, fn, scope);
+                return;
+            }else if(Ext.isObject(obj)){
+                for(var prop in obj){
+                    if(obj.hasOwnProperty(prop)){
+                        if(fn.call(scope || obj, prop, obj[prop], obj) === false){
+                            return;
+                        };
+                    }
+                }
+            }
+        },
+      
+        
+        /**
+         * Converts any iterable (numeric indices and a length property) into a true array
+         * Don't use this on strings. IE doesn't support "abc"[0] which this implementation depends on.
+         * For strings, use this instead: "abc".match(/./g) => [a,b,c];
+         * @param {Iterable} the iterable object to be turned into a true Array.
+         * @return (Array) array
+         */
+        toArray : function(){
+             return function(a, i, j){
+                     return Array.prototype.slice.call(a, i || 0, j || a.length);
+                 };
+        }(),
+
+        
+        /**
+         * <p>Returns true if the passed value is empty.</p>
+         * <p>The value is deemed to be empty if it is<div class="mdetail-params"><ul>
+         * <li>null</li>
+         * <li>undefined</li>
+         * <li>an empty array</li>
+         * <li>a zero length string (Unless the <tt>allowBlank</tt> parameter is <tt>true</tt>)</li>
+         * </ul></div>
+         * @param {Mixed} value The value to test
+         * @param {Boolean} allowBlank (optional) true to allow empty strings (defaults to false)
+         * @return {Boolean}
+         */
+        isEmpty : function(v, allowBlank){
+            return v === null || v === undefined || ((Ext.isArray(v) && !v.length)) || (!allowBlank ? v === '' : false);
+        },
+
+        
+        /**
+         * Returns true if the passed value is a JavaScript array, otherwise false.
+         * @param {Mixed} value The value to test
+         * @return {Boolean}
+         */
+        isArray : function(v){
+            return toString.apply(v) === '[object Array]';
+        },
+        
+        
+        /**
+         * Returns true if the passed object is a JavaScript date object, otherwise false.
+         * @param {Object} object The object to test
+         * @return {Boolean}
+         */
+        isDate : function(v){
+            return toString.apply(v) === '[object Date]';
+        },
+        
+        
+        /**
+         * Returns true if the passed value is a JavaScript Object, otherwise false.
+         * @param {Mixed} value The value to test
+         * @return {Boolean}
+         */
+        isObject : function(v){
+            return !!v && Object.prototype.toString.call(v) === '[object Object]';
+        },
+        
+        
+        /**
+         * Returns true if the passed value is a JavaScript 'primitive', a string, number or boolean.
+         * @param {Mixed} value The value to test
+         * @return {Boolean}
+         */
+        isPrimitive : function(v){
+            return Ext.isString(v) || Ext.isNumber(v) || Ext.isBoolean(v);
+        },
+        
+        
+        /**
+         * Returns true if the passed value is a JavaScript Function, otherwise false.
+         * @param {Mixed} value The value to test
+         * @return {Boolean}
+         */
+        isFunction : function(v){
+            return toString.apply(v) === '[object Function]';
+        },
+        
+        
+        /**
+         * Returns true if the passed value is a number. Returns false for non-finite numbers.
+         * @param {Mixed} value The value to test
+         * @return {Boolean}
+         */
+        isNumber : function(v){
+            return typeof v === 'number' && isFinite(v);
+        },
+        
+        
+        /**
+         * Returns true if the passed value is a string.
+         * @param {Mixed} value The value to test
+         * @return {Boolean}
+         */
+        isString : function(v){
+            return typeof v === 'string';
+        },
+        
+        
+        /**
+         * Returns true if the passed value is a boolean.
+         * @param {Mixed} value The value to test
+         * @return {Boolean}
+         */
+        isBoolean : function(v){
+            return typeof v === 'boolean';
+        },
+        
+        
+        /**
+         * Returns true if the passed value is not undefined.
+         * @param {Mixed} value The value to test
+         * @return {Boolean}
+         */
+        isDefined : function(v){
+            return typeof v !== 'undefined';
+        },
+
+
+        /**
+         * Returns a unique Ext id
+         * @return {String}
+         */
+        idSequence: 0,
+        id: function() {
+            Ext.idSequence++;
+            return "ext-" + Ext.idSequence;
+        }
+    });
+})();
+
+// Shorten reference
+Ext.ns = Ext.namespace;
+Ext.ns("Ext.util", "Ext.lib", "Ext.data");

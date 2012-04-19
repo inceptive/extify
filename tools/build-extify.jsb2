@@ -1,0 +1,27 @@
+{
+    "projectName": "Extify",
+    "licenseText": "Copyright(c) 2011-2012 Aron Homberg and INCEPTiVE.\nhttp://github.com/inceptive/extify",
+    "deployDir"  : "../",
+    "pkgs": [
+        {
+            "name"    : "Extify",
+            "file"    : "Extify.js",
+            "isDebug" : true,
+            "fileIncludes": [
+                {"path": "../../Extify/library/extify/",  "text": "Ext.js"}, 
+                {"path": "../../Extify/library/extify/util/",  "text": "Serializable.js"},
+                {"path": "../../Extify/library/extify/util/",  "text": "ClassObservable.js"},
+                {"path": "../../Extify/library/extify/",  "text": "Class.js"},
+                {"path": "../../Extify/library/extify/",  "text": "Function.js"},
+                {"path": "../../Extify/library/extify/",  "text": "String.js"},
+                {"path": "../../Extify/library/extify/",  "text": "Array.js"},
+                {"path": "../../Extify/library/extify/",  "text": "Template.js"},
+                {"path": "../../Extify/library/extify/util/",  "text": "TaskRunner.js"},
+                {"path": "../../Extify/library/extify/util/",  "text": "DelayedTask.js"},
+                {"path": "../../Extify/library/extify/",  "text": "Registry.js"}
+            ]
+        }
+    ],
+    "resources": [
+    ]
+}

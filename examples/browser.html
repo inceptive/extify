@@ -1,0 +1,43 @@
+<html>
+<head>
+    <title>Extify 0.4</title>
+    <script src="../Extify-debug.js"></script>
+    
+    <script>
+
+    // You can try that code e.g. in Node.JS,
+    // Rhino, Browser, Embedded, ...
+    
+    var lala = Ext.extend(Object, {                
+      muah1: true                                  
+    });                                            
+    new lala();                                    
+                                                   
+    // You can now use:                            
+                                                   
+    Ext.define("lulu", {                           
+       haha: 15                                    
+    });                                            
+                                                   
+    Ext.define("lala2.lala", {                     
+        muah: false,                               
+        extend: 'lala',                            
+        mixins: ['lulu'],                          
+        statics: {                                 
+            uha: true                              
+        },                                         
+        alias: 'another.classname',                
+        singleton: true                            
+    }, function(classRef) {                        
+        console.debug('yeah, class was defined!'); 
+    });                                             
+                                                   
+    Ext.log(another.classname);              
+                                      
+    
+    </script>
+</head>
+<body>
+    Extified!
+</body>
+</html>

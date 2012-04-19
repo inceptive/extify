@@ -1,0 +1,59 @@
+<html>
+<head>
+  <title>The source code</title>
+    <link href="../resources/prettify/prettify.css" type="text/css" rel="stylesheet" />
+    <script type="text/javascript" src="../resources/prettify/prettify.js"></script>
+</head>
+<body  onload="prettyPrint();">
+    <pre class="prettyprint lang-js"><div id="cls-Ext.Class"></div>/**
+ * @class Ext.Class
+ * 
+ * Base class of all other classes specialized for instantiation
+ * and dynamic configuration.   
+ */
+Ext.define('Ext.Class', {
+
+    mixins: ['Ext.util.Observable', 'Ext.util.Serializable'],
+
+
+    <div id="cfg-Ext.Class-id"></div>/**
+     * @cfg {String} id Id of the component _instance_
+     */
+    id: null,
+
+
+    <div id="cfg-Ext.Class-xtype"></div>/**
+     * @cfg {String} xtype Component type name
+     */
+    xtype: null,
+
+
+    /**
+     * Gets called on instance creation.
+     * Maps the given config object onto the
+     * local object instance if given.          
+     *                    
+     * @param {Object} cfg Optional overlay config     
+     * @private
+     */         
+    constructor: function(/*{Object} cfg*/) {
+    
+        if (Ext.isDefined(arguments[0]) &&
+            Ext.isObject(arguments[0])) {
+           
+            // Apply config object onto local instance
+            Ext.apply(this, arguments[0]);
+        }
+
+        // Register in component manager with id
+        // If this.id is null, a id will be auto-generated (sequence)
+        Ext.ClassManager.registerInstance(this.id, this);
+        
+
+        // Process Ext.util.Observable listeners object
+        // of this.listeners
+        this.processListenersObject();
+    }
+}); </pre>    
+</body>
+</html>

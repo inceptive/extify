@@ -1,0 +1,84 @@
+<html>
+<head>
+  <title>The source code</title>
+    <link href="../resources/prettify/prettify.css" type="text/css" rel="stylesheet" />
+    <script type="text/javascript" src="../resources/prettify/prettify.js"></script>
+</head>
+<body  onload="prettyPrint();">
+    <pre class="prettyprint lang-js"><div id="cls-Ext.Application"></div>/**
+ * @class Ext.Application
+ *  
+ * Represents the application. 
+ * Instance registers as: App in global scope!   
+ * 
+ * To be used via: Ext.application({
+ *     // Configuration goes here
+ * })  
+ */ 
+Ext.define('Ext.Application', {
+
+    mixins: ['Ext.util.Observable'],
+
+    statics: {
+    
+        <div id="method-Ext.Application-create"></div>/**
+         * Defines an application and registers it's controllers generically. 
+         * 
+         * @param {Object} cfg Application configuration
+         * @return void     
+         */         
+        create: function(cfg) {
+            global.App = new Ext.Application(cfg);
+        }
+    },
+
+
+    <div id="cfg-Ext.Application-name"></div>/**
+     * @cfg {String} name Name of the app
+     */         
+    name: '',
+    
+    
+    <div id="cfg-Ext.Application-appFolder"></div>/**
+     * @cfg {String} appFolder Application folder
+     */
+    appFolder: 'app',
+    
+    
+    <div id="cfg-Ext.Application-controllers"></div>/**
+     * @cfg {Array} controllers Controller names
+     */         
+    controllers: [],
+    
+    
+    <div id="method-Ext.Application-constructor"></div>/**
+     * Constructor for the application class
+     *
+     * @param {Object} cfg Config overlay
+     * @return void          
+     */         
+    constructor: function(cfg) {
+    
+        // Overlay all given Ext.application()  
+        // configs to this instance
+        Ext.apply(this, cfg);
+        
+        // Load controllers
+        Ext.loadClassesByNames(this.controllers, this.appFolder + "/controller");
+        
+        // Call the onLaunch() method
+        this.onLaunch();
+    },
+    
+    
+    <div id="method-Ext.Application-onLaunch"></div>/**
+     * Get's automatically called on app launch.
+     * @return void     
+     */         
+    onLaunch: function() {}
+});
+
+// Shortcut
+Ext.application = Ext.Application.create;</pre>    
+</body>
+</html>
